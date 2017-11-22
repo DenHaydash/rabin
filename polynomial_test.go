@@ -230,3 +230,16 @@ func Test_Uint64(t *testing.T) {
 		t.Error("coeffs != cmp")
 	}
 }
+
+func Test_IsPrimitive(t *testing.T) {
+	a := NewPolynomialFromCoeffs([]uint{4, 1, 0})
+	b := NewPolynomialFromCoeffs([]uint{4, 3, 2, 1, 0})
+
+	if !a.IsPrimitive() {
+		t.Error("x^4 + x + 1 should be a primitive polynom")
+	}
+
+	if b.IsPrimitive() {
+		t.Error("x^4 + x^3 + x^2 + x + 1 shouldn't be a primitive polynom")
+	}
+}

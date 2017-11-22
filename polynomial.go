@@ -6,6 +6,7 @@ package rabin
 
 import (
 	"fmt"
+	"math"
 	"math/big"
 	"strings"
 )
@@ -410,4 +411,42 @@ func (p *Polynomial) Uint64() (uint, uint64) {
 
 	v := uint64(lower) | (uint64(upper) << 32)
 	return p.degree, v
+}
+
+func generateCheckingPolynoms(degree uint) []*Polynomial {
+	// n = 2^degree - 1
+	n := uint(math.Pow(2, float64(degree))) - 1
+
+	checkingPolynoms := make([]*Polynomial, 0, n-1)
+
+	for i := uint(1); i < n; i++ {
+		checkingPolynoms = append(checkingPolynoms, NewPolynomialFromCoeffs([]uint{i, 0}))
+	}
+
+	return checkingPolynoms
+}
+
+var _checkingPolynomsCache = make(map[uint][]*Polynomial)
+
+func getCheckingPolynoms(degree uint) []*Polynomial {
+	polynoms, ok := _checkingPolynomsCache[degree]
+
+	if !ok {
+		polynoms = generateCheckingPolynoms(degree)
+
+		_checkingPolynomsCache[degree] = polynoms
+	}
+
+	return polynoms
+}
+
+func (p *Polynomial) IsPrimitive() bool {
+	for _, cp := range getCheckingPolynoms(p.Degree()) {
+		// if gcd != 1 -> irreducible polynom isn't primitive
+		if _, gcdNumber := new(Polynomial).Gcd(p, cp).Uint64(); gcdNumber != 1 {
+			return false
+		}
+	}
+
+	return true
 }
